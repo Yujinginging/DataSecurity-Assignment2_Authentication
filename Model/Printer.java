@@ -9,6 +9,9 @@ public class Printer {
     public Printer(String printer){
         this.printer = printer;
     }
+    public String getPrinter(){
+        return printer;
+    }
     public Dictionary getQueue(){
         return queue;
     }
