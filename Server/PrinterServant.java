@@ -33,6 +33,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
                 System.out.println(printerList.get(i).getPrinter() + " ------" + printer);
                 //printerList.get(i).addFileIntoQueue(filename);
                 s=  "printing" + " " + filename + "on the printer " + " " + printer; //printer.fileName; printing ** on the printer **
+                break;
             } else {
                 s=  "there is no such printer, please select another printer name!"; // if the user enters the wrong printer name.
             }
