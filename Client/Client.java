@@ -1,28 +1,29 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
+import java.util.concurrent.TimeUnit;
 
 public class Client {
-    public static void main(String[] args) throws IOException, NotBoundException {
+    public static void main(String[] args) throws IOException, NotBoundException, InterruptedException {
         PrinterService service = (PrinterService) Naming.lookup("rmi://localhost:5099/printer");
-        System.out.println("----" +service.echo(" -> Hey printer Im a client!" + " " + service.getClass().getName()));
+        //System.out.println("----" +service.echo(" -> Hey printer Im a client!" + " " + service.getClass().getName()));
 
         BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
-        int selectedService = selectService(consoleReader);
+        //int selectedService = selectService(consoleReader);
         boolean logOutFlag = false;
 
         // Loop of printer actions from the client, until the client asks to Log out !
         while (!logOutFlag){
-            String printerAction = printerCall(consoleReader, selectedService, service);
+
+            String printerAction = printerCall(consoleReader, selectService(consoleReader), service);
             System.out.println(printerAction);
             if (printerAction.equals("Log out")){
                 System.out.println("Client logged out from the server.");
                 logOutFlag = true;
             }
+            TimeUnit.SECONDS.sleep(3);
         }
     }
 

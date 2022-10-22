@@ -1,4 +1,3 @@
-import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -6,6 +5,7 @@ import java.util.Dictionary;
 
 public class PrinterServant extends UnicastRemoteObject implements PrinterService{
     boolean serverStatus = false; //false means server is off, true means on
+    String printerOff= "Printer server is off. Start the printer server before selecting another action.";
     ArrayList<Printer> printerList ;
     //
     public PrinterServant(boolean serverStatus) throws RemoteException{
@@ -27,15 +27,19 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     @Override
     public String print(String filename, String printer) throws RemoteException {
         String s = null;
-        for (int i = 0; i < printerList.size(); i++) {
+        if (!checkIfPrinterIsOn()){
+            return printerOff;
+        }
 
+        for (int i = 0; i < printerList.size(); i++) {
+            System.out.println(printerList.get(i).getPrinter() + " ------" + printer);
             if ((printerList.get(i).getPrinter()).equals(printer)) {
                 System.out.println(printerList.get(i).getPrinter() + " ------" + printer);
                 //printerList.get(i).addFileIntoQueue(filename);
-                s=  "printing" + " " + filename + "on the printer " + " " + printer; //printer.fileName; printing ** on the printer **
+                s =  "printing" + " [" + filename + "] on printer " + " " + printer; //printer.fileName; printing ** on the printer **
                 break;
             } else {
-                s=  "there is no such printer, please select another printer name!"; // if the user enters the wrong printer name.
+                s =  "there is no such printer, please try again!"; // if the user enters the wrong printer name.
             }
         }
         return s;
@@ -53,7 +57,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String start() throws RemoteException {
-        if (serverStatus==false){
+        if (!serverStatus){
             serverStatus = true;
             return "The server starts working now";
 
@@ -64,7 +68,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String stop() throws RemoteException {
-        if (serverStatus == true){
+        if (serverStatus){
             serverStatus=false;
             return "The server is stopped now";
 
@@ -76,7 +80,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String restart() throws RemoteException {
-        if (serverStatus == true){
+        if (serverStatus){
             //restart
 
             return "The server has been restarted now!";
@@ -104,5 +108,9 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     @Override
     public String logOut() throws RemoteException {
         return "Log out";
+    }
+
+    public boolean checkIfPrinterIsOn(){
+        return serverStatus;
     }
 }
