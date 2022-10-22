@@ -1,13 +1,14 @@
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.Dictionary;
 
 public interface PrinterService extends Remote {
     public String echo(String input) throws RemoteException;
 
     public String print(String filename, String printer) throws RemoteException; // prints file filename on the specified printer
 
-    public  String queue(String printer) throws RemoteException; // lists the print queue for a given printer on the user's display in lines of the form <job number>   <file name>
+    public Dictionary queue(String printer) throws RemoteException; // lists the print queue for a given printer on the user's display in lines of the form <job number>   <file name>
 
     public String topQueue(String printer, int job) throws RemoteException; // moves job to the top of the queue
 
