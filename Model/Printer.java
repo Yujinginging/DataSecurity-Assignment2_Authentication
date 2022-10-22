@@ -3,7 +3,7 @@ import java.util.Dictionary;
 public class Printer {
     String printer;
     String fileName;
-
+    boolean status;
     Dictionary queue;
 
     public Printer(String printer){
@@ -25,4 +25,11 @@ public class Printer {
         queue.put(jobNumber,fileName);
     }
 
+    public boolean getStatus(){
+        return status;
+    }
+
+    public void setStatus(boolean status){
+        this.status = status;
+    }
 }
