@@ -7,12 +7,15 @@ import java.util.Dictionary;
 public class PrinterServant extends UnicastRemoteObject implements PrinterService{
     boolean serverStatus = false; //false means server is off, true means on
     ArrayList<Printer> printerList ;
-
     //
-    public PrinterServant(boolean serverStatus, ArrayList<Printer> printerList) throws RemoteException{
+    public PrinterServant(boolean serverStatus) throws RemoteException{
         super();
+        printerList = new ArrayList<>();
         this.serverStatus = serverStatus;
-        this.printerList = printerList;
+        Printer p1 = new Printer("p1");
+        Printer p2 = new Printer("2");
+        printerList.add(p1);
+        printerList.add(p2);
     }
     @Override
     public String echo(String input) throws RemoteException {
@@ -21,16 +24,18 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String print(String filename, String printer) throws RemoteException {
-        for (int i=0; i<printerList.size();i++){
-            System.out.println(printerList.get(i).getPrinter() + " ------" + printer);
-            if (printerList.get(i).getPrinter() == printer){
-                printerList.get(i).addFileIntoQueue(filename);
-            }
-            else {
-                return "there is no such printer, please select another printer name!"; // if the user enters the wrong printer name.
+        String s = null;
+        for (int i = 0; i < printerList.size(); i++) {
+
+            if ((printerList.get(i).getPrinter()).equals(printer)) {
+                System.out.println(printerList.get(i).getPrinter() + " ------" + printer);
+                //printerList.get(i).addFileIntoQueue(filename);
+                s=  "printing" + " " + filename + "on the printer " + " " + printer; //printer.fileName; printing ** on the printer **
+            } else {
+                s=  "there is no such printer, please select another printer name!"; // if the user enters the wrong printer name.
             }
         }
-        return "printing" + " " + filename + "on the printer " + " " + printer; //printer.fileName; printing ** on the printer **
+        return s;
     }
 
     @Override
@@ -80,7 +85,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String status(String printer) throws RemoteException {
-        return null; //printer.status(); //printer status method needed
+        return printer; //printer.status(); //printer status method needed
     }
 
     @Override
