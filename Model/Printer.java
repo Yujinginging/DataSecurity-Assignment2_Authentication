@@ -1,10 +1,13 @@
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.List;
 
 public class Printer {
     String printer;
-    String fileName;
+    File file;
     boolean status;
-    Dictionary queue;
+    ArrayList<File> queue = new ArrayList<File>();
 
     public Printer(String printer){
         this.printer = printer;
@@ -12,17 +15,24 @@ public class Printer {
     public String getPrinter(){
         return printer;
     }
-    public Dictionary getQueue(){
+    public ArrayList<File> getQueue(){
         return queue;
     }
 
-    public void setQueue(Dictionary queue){
+    public void setQueue(ArrayList<File> queue){
         queue = queue;
     }
 
     public void addFileIntoQueue(String fileName){
-        int jobNumber = queue.size()+1;
-        queue.put(jobNumber,fileName);
+
+        if (queue.size() >0) {
+            int jobNumber = queue.size() + 1;
+            queue.add(new File(fileName, jobNumber));
+        }else {
+            int jobNumber = 1;
+            queue.add(new File(fileName, jobNumber));
+
+        }
     }
 
     public boolean getStatus(){
@@ -31,5 +41,22 @@ public class Printer {
 
     public void setStatus(boolean status){
         this.status = status;
+    }
+
+    public String getFileNameByJobNumber(int jobNumber){
+        for (int i =0;i<queue.size();i++){
+            if (queue.get(i).getJobNumber() == jobNumber ){
+                return queue.get(i).getFileName();
+            }
+        }
+        return null;
+    }
+
+    public File getFileByJob(int job){
+        for (int i =0;i<queue.size();i++){
+            if (queue.get(i).getJobNumber() == job ){
+                return queue.get(i);
+            }
+        }return  null;
     }
 }

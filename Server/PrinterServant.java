@@ -1,3 +1,4 @@
+import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -32,11 +33,13 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
         }
 
         for (int i = 0; i < printerList.size(); i++) {
-            System.out.println(printerList.get(i).getPrinter() + " ------" + printer);
             if ((printerList.get(i).getPrinter()).equals(printer)) {
-                System.out.println(printerList.get(i).getPrinter() + " ------" + printer);
-                //printerList.get(i).addFileIntoQueue(filename);
+                //add file to the queue
+                Printer newPrinter = printerList.get(i);
+                int num = newPrinter.getQueue().size()+1;
+                newPrinter.queue.add(new File(filename,num));//
                 s =  "printing" + " [" + filename + "] on printer " + " " + printer; //printer.fileName; printing ** on the printer **
+                printerList.get(i).setQueue(newPrinter.queue);
                 break;
             } else {
                 s =  "there is no such printer, please try again!"; // if the user enters the wrong printer name.
@@ -46,13 +49,43 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public Dictionary queue(String printer) throws RemoteException {
-        return null; // printer.getQueue()
+    public ArrayList<File> queue(String printer) throws RemoteException {
+        for (int i=0;i<printerList.size();i++){
+            if ((printerList.get(i).getPrinter()).equals(printer)){
+                return printerList.get(i).getQueue();
+            }
+        }
+        return null;
     }
 
     @Override
     public String topQueue(String printer, int job) throws RemoteException {
-        return "moves to the top in the queue"; // job number
+        String filename=null;
+        for (int i=0;i<printerList.size();i++){
+            if ((printerList.get(i).getPrinter()).equals(printer)) {
+                Printer p = printerList.get(i);
+                ArrayList<File> newQueue = null;//create a new printer queue to edit the job number
+
+
+                //remove the selected job first
+                File topfile = p.getFileByJob(job);
+                p.queue.remove(topfile);
+
+                //
+                filename = topfile.getFileName();
+                newQueue.add(new File(filename,1));
+
+                //set the new queue with the selected job on the top
+                for (int j=1;j<=p.getQueue().size();j++){
+                    newQueue.add(new File(p.getFileNameByJobNumber(j),j+1));
+                }
+                //replace the printer in the printerlist to the newPrinter
+                printerList.get(i).setQueue(newQueue);
+                break;
+            }
+            }
+
+        return "Job number " + job +" named: " + filename + " moves to the top in the queue"; // job number
     }
 
     @Override
@@ -112,5 +145,15 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     public boolean checkIfPrinterIsOn(){
         return serverStatus;
+    }
+
+    @Override
+    public String toStringQueue(String printer) throws RemoteException {
+        ArrayList<File> queue = queue(printer);
+        String s = "";
+        for (int i=0;i<queue.size();i++){
+            s += queue.get(i).getJobNumber() + "   " + queue.get(i).getFileName() + "\n";
+        }
+        return s;
     }
 }
