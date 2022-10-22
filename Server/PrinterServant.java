@@ -64,7 +64,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)) {
                 Printer p = printerList.get(i);
-                ArrayList<File> newQueue = null;//create a new printer queue to edit the job number
+                ArrayList<File> newQueue = new ArrayList<File>();//create a new printer queue to edit the job number
 
 
                 //remove the selected job first
