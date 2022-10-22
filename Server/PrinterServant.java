@@ -12,7 +12,9 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
         super();
         printerList = new ArrayList<>();
         this.serverStatus = serverStatus;
-        Printer p1 = new Printer("p1");
+
+        //creating 2 printers in the printList
+        Printer p1 = new Printer("1");
         Printer p2 = new Printer("2");
         printerList.add(p1);
         printerList.add(p2);
