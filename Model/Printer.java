@@ -6,6 +6,9 @@ public class Printer {
 
     Dictionary queue;
 
+    public Printer(String printer){
+        this.printer = printer;
+    }
     public Dictionary getQueue(){
         return queue;
     }

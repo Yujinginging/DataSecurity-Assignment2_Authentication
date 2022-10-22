@@ -8,6 +8,14 @@ public class PrinterServiceImpl implements PrinterService{
     boolean serverStatus = false; //false means server is off, true means on
     ArrayList<Printer> printerList ;
 
+
+
+    //
+    public PrinterServiceImpl(boolean serverStatus, ArrayList<Printer> printerList) throws RemoteException{
+        super();
+        this.serverStatus = serverStatus;
+        this.printerList = printerList;
+    }
     @Override
     public String echo(String input) throws RemoteException {
         return null;
