@@ -27,8 +27,11 @@ public class PrinterServiceImpl implements PrinterService{
             if (printerList.get(i).printer == printer){
                 printerList.get(i).addFileIntoQueue(filename);
             }
+            else {
+                return "there is no such printer, please select another printer name!"; // if the user enters the wrong printer name.
+            }
         }
-        return "printing" + filename + "on the printer " + printer; //printer.fileName; printing ** on the printer **
+        return "printing" + filename + "on the printer " + printer;
     }
 
     @Override
@@ -89,5 +92,10 @@ public class PrinterServiceImpl implements PrinterService{
     @Override
     public String setConfig(String parameter, String value) throws RemoteException {
         return null;
+    }
+
+    @Override
+    public String logOut() throws RemoteException {
+        return "Log out";
     }
 }
