@@ -22,5 +22,6 @@ public interface PrinterService extends Remote {
     public String readConfig(String parameter) throws RemoteException; // prints the value of the parameter on the user's display
 
     public String setConfig(String parameter, String value) throws RemoteException; // sets the parameter to value
-    public String logOut() throws RemoteException;
+
+    public String logOut() throws RemoteException; //logs out the client
 }

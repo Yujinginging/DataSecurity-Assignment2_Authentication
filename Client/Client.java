@@ -13,9 +13,17 @@ public class Client {
 
         BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
         int selectedService = selectService(consoleReader);
-        String printerAction = printerCall(consoleReader, selectedService, service);
+        boolean logOutFlag = false;
 
-        System.out.println(printerAction);
+        // Loop of printer actions from the client, until the client asks to Log out !
+        while (!logOutFlag){
+            String printerAction = printerCall(consoleReader, selectedService, service);
+            System.out.println(printerAction);
+            if (printerAction.equals("Log out")){
+                System.out.println("Client logged out from the server.");
+                logOutFlag = true;
+            }
+        }
     }
 
     private static String printerCall(BufferedReader consoleReader, int selectedService, PrinterService service) throws IOException {
@@ -55,6 +63,8 @@ public class Client {
             String value = consoleReader.readLine();
 
             message = service.setConfig(parameter, value);
+        } else if(selectedService == 0){
+            message = service.logOut();
         } else
             message = "wrong number...this specified number doesn't belong to a service.";
         return message;
@@ -72,6 +82,7 @@ public class Client {
         System.out.println("Press 7 if you want to get the status of the printer");
         System.out.println("Press 8 if you want to get the value of a parameter");
         System.out.println("Press 9 if you want to set the value of a parameter");
+        System.out.println("Press 0 if you want to log out.");
 
         try{
             return Integer.parseInt(consoleReader.readLine());

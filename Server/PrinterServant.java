@@ -22,7 +22,8 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     @Override
     public String print(String filename, String printer) throws RemoteException {
         for (int i=0; i<printerList.size();i++){
-            if (printerList.get(i).printer == printer){
+            System.out.println(printerList.get(i).getPrinter() + " ------" + printer);
+            if (printerList.get(i).getPrinter() == printer){
                 printerList.get(i).addFileIntoQueue(filename);
             }
             else {
