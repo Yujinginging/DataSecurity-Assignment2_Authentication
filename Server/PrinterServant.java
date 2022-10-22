@@ -1,17 +1,14 @@
-import java.lang.reflect.Array;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.List;
 
-public class PrinterServiceImpl implements PrinterService{
+public class PrinterServant extends UnicastRemoteObject implements PrinterService{
     boolean serverStatus = false; //false means server is off, true means on
     ArrayList<Printer> printerList ;
 
-
-
     //
-    public PrinterServiceImpl(boolean serverStatus, ArrayList<Printer> printerList) throws RemoteException{
+    public PrinterServant(boolean serverStatus, ArrayList<Printer> printerList) throws RemoteException{
         super();
         this.serverStatus = serverStatus;
         this.printerList = printerList;
@@ -28,7 +25,7 @@ public class PrinterServiceImpl implements PrinterService{
                 printerList.get(i).addFileIntoQueue(filename);
             }
         }
-        return "printing" + filename + "on the printer " + printer; //printer.fileName; printing ** on the printer **
+        return "printing" + " " + filename + "on the printer " + " " + printer; //printer.fileName; printing ** on the printer **
     }
 
     @Override
