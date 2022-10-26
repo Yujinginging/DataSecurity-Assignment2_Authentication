@@ -75,6 +75,20 @@ public class Client {
             message = service.setConfig(parameter, value);
         } else if(selectedService == 0){
             message = service.logOut();
+        } else if(selectedService == 10){
+            System.out.println("Login: ");
+            String login = consoleReader.readLine();
+            System.out.println("Password: ");
+            String password = consoleReader.readLine();
+
+            message = service.logIn(login, password);
+        } else if(selectedService == 11){
+            System.out.println("Login: ");
+            String login = consoleReader.readLine();
+            System.out.println("Password: ");
+            String password = consoleReader.readLine();
+
+            message = service.Register(login, password);
         } else
             message = "wrong number...this specified number doesn't belong to a service.";
         return message;
@@ -93,6 +107,8 @@ public class Client {
         System.out.println("Press 8 if you want to get the value of a parameter");
         System.out.println("Press 9 if you want to set the value of a parameter");
         System.out.println("Press 0 if you want to log out.");
+        System.out.println("Press 10 if you want to log in.");
+        System.out.println("Press 11 if you want to register.");
 
         try{
             return Integer.parseInt(consoleReader.readLine());

@@ -1,24 +1,53 @@
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Formatter;
 
 public class PrinterServant extends UnicastRemoteObject implements PrinterService{
     boolean serverStatus = false; //false means server is off, true means on
     String printerOff= "Printer server is off. Start the printer server before selecting another action.";
-    ArrayList<Printer> printerList ;
+    ArrayList<Printer> printerList;
+    Connection dbConnector;
+    String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "\\database.db";
+    int role = 0;
+    boolean userLoggedIn = false;
     //
-    public PrinterServant(boolean serverStatus) throws RemoteException{
+    public PrinterServant(boolean serverStatus) throws RemoteException {
         super();
         printerList = new ArrayList<>();
         this.serverStatus = serverStatus;
+        try{
+            dbConnector = DriverManager.getConnection(url);
+            Statement statement = dbConnector.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM PRINTER");
+
+            while(resultSet.next()){
+                String name = resultSet.getString("Name");
+                Printer p = new Printer(name);
+                printerList.add(p);
+                System.out.println(name);
+            }
+
+
+
+
+
+        }catch(SQLException e){
+            e.getErrorCode();
+        }
+
 
         //creating 2 printers in the printList
-        Printer p1 = new Printer("1");
+        /*Printer p1 = new Printer("1");
         Printer p2 = new Printer("2");
         printerList.add(p1);
-        printerList.add(p2);
+        printerList.add(p2);*/
     }
     @Override
     public String echo(String input) throws RemoteException {
@@ -27,6 +56,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String print(String filename, String printer) throws RemoteException {
+        if(!userLoggedIn) return "User not logged in!";
         String s = null;
         if (!checkIfPrinterIsOn()){
             return printerOff;
@@ -50,6 +80,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public ArrayList<File> queue(String printer) throws RemoteException {
+        if(!userLoggedIn) return null;
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)){
                 return printerList.get(i).getQueue();
@@ -60,6 +91,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String topQueue(String printer, int job) throws RemoteException {
+        if(!userLoggedIn) return "User not logged in!";
         String filename=null;
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)) {
@@ -90,6 +122,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String start() throws RemoteException {
+        if(!userLoggedIn) return "User not logged in!";
         if (!serverStatus){
             serverStatus = true;
             return "The server starts working now";
@@ -101,6 +134,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String stop() throws RemoteException {
+        if(!userLoggedIn) return "User not logged in!";
         if (serverStatus){
             serverStatus=false;
             return "The server is stopped now";
@@ -113,6 +147,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String restart() throws RemoteException {
+        if(!userLoggedIn) return "User not logged in!";
         if (serverStatus){
             //restart
 
@@ -125,6 +160,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String status(String printer) throws RemoteException {
+        if(!userLoggedIn) return "User not logged in!";
         return printer; //printer.status(); //printer status method needed
     }
 
@@ -140,7 +176,62 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String logOut() throws RemoteException {
+        if(!userLoggedIn) return "User not logged in!";
+        userLoggedIn = false;
         return "Log out";
+    }
+
+    @Override
+    public String logIn(String login, String password) throws RemoteException {
+        try{
+            User newUser = new User(login, password, (short) 0);
+
+            Statement statement = dbConnector.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM User WHERE Login = '" + login + "'");
+
+            while(resultSet.next()){
+                String dbPassword = resultSet.getString("Password");
+                int dbRole = resultSet.getInt("Role");
+
+
+                if(dbPassword.equals(newUser.password)){
+                    role = dbRole;
+                    userLoggedIn = true;
+                    return newUser.password + ", " + dbPassword;
+                }
+            }
+
+
+
+
+
+
+        }catch(Exception e){
+            return e.getMessage();
+        }
+        return "Not logged in";
+    }
+
+    @Override
+    public String Register(String login, String password) throws RemoteException {
+        try{
+            User newUser = new User(login, password, (short) 0);
+
+            Statement statement = dbConnector.createStatement();
+
+            boolean execute = statement.execute("INSERT INTO User (Login, Password, Role)\n" +
+                                                    "VALUES ('" + newUser.login + "', '" + newUser.password + "'," + newUser.role + ");");
+
+            if(!execute) return "Registered";
+
+
+
+
+
+        }catch(Exception e){
+            return e.getMessage();
+        }
+        return "Execute failed";
     }
 
     public boolean checkIfPrinterIsOn(){
@@ -149,11 +240,23 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String toStringQueue(String printer) throws RemoteException {
+        if(!userLoggedIn) return "User not logged in!";
         ArrayList<File> queue = queue(printer);
         String s = "";
         for (int i=0;i<queue.size();i++){
             s += queue.get(i).getJobNumber() + "   " + queue.get(i).getFileName() + "\n";
         }
         return s;
+    }
+    private static String byteToHex(final byte[] hash)
+    {
+        Formatter formatter = new Formatter();
+        for (byte b : hash)
+        {
+            formatter.format("%02x", b);
+        }
+        String result = formatter.toString();
+        formatter.close();
+        return result;
     }
 }

@@ -27,5 +27,11 @@ public interface PrinterService extends Remote {
 
     public String logOut() throws RemoteException; //logs out the client
 
+    public String logIn(String login, String password) throws RemoteException;
+
+    public String Register(String login, String password) throws RemoteException;
+
     public String toStringQueue(String printer) throws RemoteException;
+
+
 }
