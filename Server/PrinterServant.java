@@ -5,14 +5,13 @@ import java.rmi.server.UnicastRemoteObject;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Formatter;
+import java.util.*;
 
 public class PrinterServant extends UnicastRemoteObject implements PrinterService{
     boolean serverStatus = false; //false means server is off, true means on
     String printerOff= "Printer server is off. Start the printer server before selecting another action.";
     ArrayList<Printer> printerList;
+    HashMap<String,String> parameterList;
     Connection dbConnector;
     String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "\\database.db";
     int role = 0;
@@ -33,21 +32,24 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
                 printerList.add(p);
                 System.out.println(name);
             }
-
-
-
-
-
         }catch(SQLException e){
             e.getErrorCode();
         }
+        //creating a parameter array list
+        parameterList = new HashMap<String,String>();
+        int randomNum;
+        int upperBound = 10;
+        //randomNum = rand.nextInt(upperBound);
+        randomNum = 3;
+        for (int i = 0; i < randomNum; i++){
+            String parameterName = "Parameter" + i;
+            parameterList.put(parameterName, " ");
+            System.out.println();
+        }
+        for (String i : parameterList.keySet()) {
+            System.out.println(i);
+        }
 
-
-        //creating 2 printers in the printList
-        /*Printer p1 = new Printer("1");
-        Printer p2 = new Printer("2");
-        printerList.add(p1);
-        printerList.add(p2);*/
     }
     @Override
     public String echo(String input) throws RemoteException {
@@ -166,18 +168,32 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String readConfig(String parameter) throws RemoteException {
-        return null;
+        if(!userLoggedIn) return "User not logged in!";
+        String value = parameterList.get(parameter);
+        if (value.equals(" ") || value.equals(null)){
+            return "Did not found the parameter in the list.";
+        }else {
+            return value;
+        }
+
     }
 
     @Override
     public String setConfig(String parameter, String value) throws RemoteException {
-        return null;
+        if(!userLoggedIn) return "User not logged in!";
+        for (String i : parameterList.keySet()) {
+            if (i.equals(parameter)){
+                parameterList.put(i, value);
+                return "Value set";
+            }
+        }
+        return "Did not found the parameter in the list.";
     }
 
     @Override
     public String logOut() throws RemoteException {
-        if(!userLoggedIn) return "User not logged in!";
-        userLoggedIn = false;
+    //    if(!userLoggedIn) return "User not logged in!";
+    //    userLoggedIn = false;
         return "Log out";
     }
 
@@ -200,12 +216,6 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
                     return newUser.password + ", " + dbPassword;
                 }
             }
-
-
-
-
-
-
         }catch(Exception e){
             return e.getMessage();
         }
@@ -221,13 +231,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
             boolean execute = statement.execute("INSERT INTO User (Login, Password, Role)\n" +
                                                     "VALUES ('" + newUser.login + "', '" + newUser.password + "'," + newUser.role + ");");
-
             if(!execute) return "Registered";
-
-
-
-
-
         }catch(Exception e){
             return e.getMessage();
         }

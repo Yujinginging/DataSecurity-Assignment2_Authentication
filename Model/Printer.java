@@ -5,7 +5,9 @@ import java.util.List;
 
 public class Printer {
     String printer;
+
     File file;
+
     boolean status;
     ArrayList<File> queue = new ArrayList<File>();
 

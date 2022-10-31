@@ -33,5 +33,4 @@ public interface PrinterService extends Remote {
 
     public String toStringQueue(String printer) throws RemoteException;
 
-
 }
