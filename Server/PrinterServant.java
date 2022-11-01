@@ -127,8 +127,11 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
         if(!userLoggedIn) return "User not logged in!";
         if (!serverStatus){
             serverStatus = true;
+            // when the print server starts working it automatically starts all the printers as well!
+            for (int i = 0; i < printerList.size(); i++){
+                printerList.get(i).setStatus(true);
+            }
             return "The server starts working now";
-
         }else {
             return "The server has been working already.";
         }
@@ -163,7 +166,17 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     @Override
     public String status(String printer) throws RemoteException {
         if(!userLoggedIn) return "User not logged in!";
-        return printer; //printer.status(); //printer status method needed
+        for(int i = 0; i < printerList.size(); i++){
+            if ((printerList.get(i).getPrinter()).equals(printer)) {
+                if (printerList.get(i).getStatus()){
+                    return printer + " is ON.";
+                }
+                else{
+                    return printerOff;
+                }
+            }
+        }
+        return "Did not found the selected printer in the list";
     }
 
     @Override

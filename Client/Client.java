@@ -9,15 +9,47 @@ import java.util.concurrent.TimeUnit;
 public class Client {
     public static void main(String[] args) throws IOException, NotBoundException, InterruptedException {
         PrinterService service = (PrinterService) Naming.lookup("rmi://localhost:5099/printer");
-        //System.out.println("----" +service.echo(" -> Hey printer Im a client!" + " " + service.getClass().getName()));
 
         BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
         //int selectedService = selectService(consoleReader);
+
         boolean logOutFlag = false;
+        boolean logInFlag  = false;
+
+        System.out.println("Welcome to the print server. If its you first time connecting, please register. Otherwise proceed with login.");
+        System.out.println("Press [R] for registering.");
+        System.out.println("Press [L] for login.");
+        System.out.println("-------------------------------------------------------------------------------------------------------------");
+        String line = consoleReader.readLine();
+//      System.out.println(line);
+
+        while (!logInFlag) {
+
+            if (line.equals("R")) {
+                System.out.println("--------------------------");
+                System.out.println("Client Register:");
+                String registerAction;
+                registerAction = registerClient(consoleReader, service);
+                System.out.println(registerAction);
+
+                line = "L";
+            }
+            if (line.equals("L") ) {
+                System.out.println("--------------------------");
+                System.out.println("Client Login: ");
+                String loginAction;
+                loginAction = loginClient(consoleReader, service);
+                System.out.println("Client log in " + loginAction);
+                logInFlag = true;
+            }
+            else {
+                System.out.println("Press [R] or [L] in order to continue!");
+                line = consoleReader.readLine();
+            }
+        }
 
         // Loop of printer actions from the client, until the client asks to Log out !
         while (!logOutFlag){
-
             String printerAction = printerCall(consoleReader, selectService(consoleReader), service);
             System.out.println(printerAction);
             if (printerAction.equals("Log out")){
@@ -75,27 +107,39 @@ public class Client {
             message = service.setConfig(parameter, value);
         } else if(selectedService == 0){
             message = service.logOut();
-        } else if(selectedService == 10){
-            System.out.println("Login: ");
-            String login = consoleReader.readLine();
-            System.out.println("Password: ");
-            String password = consoleReader.readLine();
-
-            message = service.logIn(login, password);
-        } else if(selectedService == 11){
-            System.out.println("Login: ");
-            String login = consoleReader.readLine();
-            System.out.println("Password: ");
-            String password = consoleReader.readLine();
-
-            message = service.Register(login, password);
+            System.out.println("-------------------------------------------------------------------------------------------------------------");
         } else
             message = "wrong number...this specified number doesn't belong to a service.";
+        return message;
+    }
+
+    public static String loginClient(BufferedReader consoleReader, PrinterService service) throws IOException {
+        String message;
+
+        System.out.println("Username: ");
+        String login = consoleReader.readLine();
+        System.out.println("Password: ");
+        String password = consoleReader.readLine();
+        message = service.logIn(login, password);
+
         return message;
 
     }
 
+    public static String registerClient(BufferedReader consoleReader, PrinterService service) throws IOException {
+        String message;
+
+        System.out.println("Username: ");
+        String login = consoleReader.readLine();
+        System.out.println("Password: ");
+        String password = consoleReader.readLine();
+        message = service.Register(login, password);
+
+        return message;
+    }
+
     public static int selectService(BufferedReader consoleReader) {
+        System.out.println("-------------------------------------------------------------------------------------------------------------");
         System.out.println("Select the service you would like to use: ");
         System.out.println("Press 1 if you want to start the server.");
         System.out.println("Press 2 if you want to stop the server.");
@@ -107,8 +151,6 @@ public class Client {
         System.out.println("Press 8 if you want to get the value of a parameter");
         System.out.println("Press 9 if you want to set the value of a parameter");
         System.out.println("Press 0 if you want to log out.");
-        System.out.println("Press 10 if you want to log in.");
-        System.out.println("Press 11 if you want to register.");
 
         try{
             return Integer.parseInt(consoleReader.readLine());
