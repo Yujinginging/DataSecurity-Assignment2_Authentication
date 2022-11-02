@@ -63,7 +63,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String print(String filename, String printer, String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         String s = null;
         if (!checkIfPrinterIsOn()){
