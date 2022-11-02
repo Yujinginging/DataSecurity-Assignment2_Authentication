@@ -63,7 +63,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String print(String filename, String printer, String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         String s = null;
         if (!checkIfPrinterIsOn()){
@@ -88,7 +88,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public ArrayList<File> queue(String printer, String token) throws RemoteException {
-        if(token != activeToken) return null;
+        if(!token.equals(activeToken)) return null;
         if(!userLoggedIn) return null;
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)){
@@ -100,7 +100,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String topQueue(String printer, int job, String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         String filename=null;
         for (int i=0;i<printerList.size();i++){
@@ -132,7 +132,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String start(String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         if (!serverStatus){
             serverStatus = true;
@@ -148,7 +148,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String stop(String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         if (serverStatus){
             serverStatus=false;
@@ -162,7 +162,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String restart(String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         if (serverStatus){
             //restart
@@ -176,7 +176,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String status(String printer, String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         for(int i = 0; i < printerList.size(); i++){
             if ((printerList.get(i).getPrinter()).equals(printer)) {
@@ -193,7 +193,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String readConfig(String parameter, String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         String value = parameterList.get(parameter);
         if (value.equals(" ") || value.equals(null)){
@@ -206,7 +206,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String setConfig(String parameter, String value, String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         for (String i : parameterList.keySet()) {
             if (i.equals(parameter)){
@@ -221,7 +221,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String logOut(String token) throws RemoteException {
     //    if(!userLoggedIn) return "User not logged in!";
     //    userLoggedIn = false;
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         activeToken = "";
         return "Log out";
     }
@@ -274,7 +274,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String toStringQueue(String printer, String token) throws RemoteException {
-        if(token != activeToken) return "Session token is not valid";
+        if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
         ArrayList<File> queue = queue(printer, token);
         String s = "";
