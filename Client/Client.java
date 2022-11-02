@@ -15,6 +15,7 @@ public class Client {
 
         boolean logOutFlag = false;
         boolean logInFlag  = false;
+        String activeToken = "";
 
         System.out.println("Welcome to the print server. If its you first time connecting, please register. Otherwise proceed with login.");
         System.out.println("Press [R] for registering.");
@@ -39,7 +40,8 @@ public class Client {
                 System.out.println("Client Login: ");
                 String loginAction;
                 loginAction = loginClient(consoleReader, service);
-                System.out.println("Client log in " + loginAction);
+                activeToken = loginAction;
+                System.out.println("Client logged in!");
                 logInFlag = true;
             }
             else {
@@ -50,7 +52,7 @@ public class Client {
 
         // Loop of printer actions from the client, until the client asks to Log out !
         while (!logOutFlag){
-            String printerAction = printerCall(consoleReader, selectService(consoleReader), service);
+            String printerAction = printerCall(consoleReader, selectService(consoleReader), service, activeToken);
             System.out.println(printerAction);
             if (printerAction.equals("Log out")){
                 System.out.println("Client logged out from the server.");
@@ -60,26 +62,26 @@ public class Client {
         }
     }
 
-    private static String printerCall(BufferedReader consoleReader, int selectedService, PrinterService service) throws IOException {
+    private static String printerCall(BufferedReader consoleReader, int selectedService, PrinterService service, String activeToken) throws IOException {
         String message = " ";
         if (selectedService == 1) {
-            message = service.start();
+            message = service.start(activeToken);
         } else if (selectedService == 2) {
-            message = service.stop();
+            message = service.stop(activeToken);
         } else if (selectedService == 3) {
-            message = service.restart();
+            message = service.restart(activeToken);
         } else if (selectedService == 4) {
             System.out.println("Which file you want to be printed: ");
             String file = consoleReader.readLine();
             System.out.println("Which printer you want to use: ");
             String printer = consoleReader.readLine();
 
-            message = service.print(file, printer);
+            message = service.print(file, printer, activeToken);
         } else if (selectedService == 5) {
             System.out.println("Which printer you want to select the queue from: ");
             String printer = consoleReader.readLine();
 
-            message = service.toStringQueue(printer);
+            message = service.toStringQueue(printer, activeToken);
         } else if (selectedService == 6){
             System.out.println("Which printer you want to select the status from: ");
             String printer = consoleReader.readLine();
@@ -87,26 +89,26 @@ public class Client {
             System.out.println("Which job number you want to be printed: ");
             int jobNumber = Integer.parseInt(consoleReader.readLine());
 
-            message = service.topQueue(printer,jobNumber);
+            message = service.topQueue(printer,jobNumber, activeToken);
         }else if (selectedService == 7) {
             System.out.println("Which printer you want to select the status from: ");
             String printer = consoleReader.readLine();
 
-            message = service.status(printer);
+            message = service.status(printer, activeToken);
         } else if (selectedService == 8) {
             System.out.println("Which parameter you want to get the value from: ");
             String parameter = consoleReader.readLine();
 
-            message = service.readConfig(parameter);
+            message = service.readConfig(parameter, activeToken);
         } else if (selectedService == 9) {
             System.out.println("Which parameter you want to set its value : ");
             String parameter = consoleReader.readLine();
             System.out.println("Which is the new value of the parameter: ");
             String value = consoleReader.readLine();
 
-            message = service.setConfig(parameter, value);
+            message = service.setConfig(parameter, value, activeToken);
         } else if(selectedService == 0){
-            message = service.logOut();
+            message = service.logOut(activeToken);
             System.out.println("-------------------------------------------------------------------------------------------------------------");
         } else
             message = "wrong number...this specified number doesn't belong to a service.";
@@ -114,15 +116,15 @@ public class Client {
     }
 
     public static String loginClient(BufferedReader consoleReader, PrinterService service) throws IOException {
-        String message;
+        String token;
 
         System.out.println("Username: ");
         String login = consoleReader.readLine();
         System.out.println("Password: ");
         String password = consoleReader.readLine();
-        message = service.logIn(login, password);
+        token = service.logIn(login, password);
 
-        return message;
+        return token;
 
     }
 
