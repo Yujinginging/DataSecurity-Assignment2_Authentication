@@ -20,10 +20,12 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     private static final SecureRandom secureRandom = new SecureRandom(); //threadsafe
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder(); //threadsafe
     String activeToken = "";
+    private static final int PORT = 5099;
 
     //
-    public PrinterServant(boolean serverStatus) throws RemoteException {
-        super();
+    public PrinterServant(boolean serverStatus) throws Exception {
+        super(PORT, new RMISSLClientSocketFactory(),
+                new RMISSLServerSocketFactory());
         printerList = new ArrayList<>();
         this.serverStatus = serverStatus;
         try{

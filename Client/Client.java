@@ -1,14 +1,22 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.Dictionary;
 import java.util.concurrent.TimeUnit;
 
 public class Client {
+    private static final int PORT = 5099;
+
     public static void main(String[] args) throws IOException, NotBoundException, InterruptedException {
-        PrinterService service = (PrinterService) Naming.lookup("rmi://localhost:5099/printer");
+        Registry registry = LocateRegistry.getRegistry(
+                InetAddress.getLocalHost().getHostName(), PORT,
+                new RMISSLClientSocketFactory());
+        PrinterService service = (PrinterService) registry.lookup("printer");
 
         BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
         //int selectedService = selectService(consoleReader);
