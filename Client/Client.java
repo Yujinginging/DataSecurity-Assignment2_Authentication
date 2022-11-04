@@ -72,6 +72,7 @@ public class Client {
 
     private static String printerCall(BufferedReader consoleReader, int selectedService, PrinterService service, String activeToken) throws IOException {
         String message = " ";
+      //  System.out.println(activeToken);
         if (selectedService == 1) {
             message = service.start(activeToken);
         } else if (selectedService == 2) {
@@ -131,7 +132,7 @@ public class Client {
         System.out.println("Password: ");
         String password = consoleReader.readLine();
         token = service.logIn(login, password);
-
+        System.out.println(token);
         return token;
 
     }
