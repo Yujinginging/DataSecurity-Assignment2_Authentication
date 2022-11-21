@@ -15,7 +15,8 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     HashMap<String,String> parameterList;
     Connection dbConnector;
     String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "\\database.db";
-    int role = 0;
+    Map<Integer, Integer[]> roles = new HashMap<Integer, Integer[]>();;
+    int currentRole;
     boolean userLoggedIn = false;
     private static final SecureRandom secureRandom = new SecureRandom(); //threadsafe
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder(); //threadsafe
@@ -39,8 +40,41 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
                 printerList.add(p);
                 System.out.println(name);
             }
+            ResultSet getRoles = statement.executeQuery("SELECT * FROM ROLE");
+
+
+            while(getRoles.next()){
+                int id = resultSet.getInt("Id");
+                int print = resultSet.getInt("print");
+                int queue = resultSet.getInt("queue");
+                int topQueue = resultSet.getInt("topQueue");
+                int start = resultSet.getInt("start");
+                int stop = resultSet.getInt("stop");
+                int restart = resultSet.getInt("restart");
+                int status = resultSet.getInt("status");
+                int readConfig = resultSet.getInt("readConfig");
+                int setConfig = resultSet.getInt("setConfig");
+
+                List<Integer> priv = new ArrayList<Integer>();
+                priv.add(print);
+                priv.add(queue);
+                priv.add(topQueue);
+                priv.add(start);
+                priv.add(stop);
+                priv.add(restart);
+                priv.add(status);
+                priv.add(readConfig);
+                priv.add(setConfig);
+                priv.toArray();
+                Integer[] arr = new Integer[priv.size()];
+                arr = priv.toArray(arr);
+                roles.put(id, arr);
+                System.out.println(id + ", " + priv.toString());
+            }
+
+
         }catch(SQLException e){
-            e.getErrorCode();
+            System.out.println(e.getErrorCode());
         }
         //creating a parameter array list
         parameterList = new HashMap<String,String>();
@@ -67,6 +101,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String print(String filename, String printer, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
+        if(roles.get(currentRole)[0] == 0) return "No privileges!";
         String s = null;
         if (!checkIfPrinterIsOn()){
             return printerOff;
@@ -92,6 +127,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public ArrayList<File> queue(String printer, String token) throws RemoteException {
         if(!token.equals(activeToken)) return null;
         if(!userLoggedIn) return null;
+        if(roles.get(currentRole)[1] == 0) return null;
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)){
                 return printerList.get(i).getQueue();
@@ -104,6 +140,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String topQueue(String printer, int job, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
+        if(roles.get(currentRole)[2] == 0) return "No privileges!";
         String filename=null;
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)) {
@@ -136,6 +173,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String start(String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
+        if(roles.get(currentRole)[3] == 0) return "No privileges!";
         if (!serverStatus){
             serverStatus = true;
             // when the print server starts working it automatically starts all the printers as well!
@@ -152,6 +190,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String stop(String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
+        if(roles.get(currentRole)[4] == 0) return "No privileges!";
         if (serverStatus){
             serverStatus=false;
             return "The server is stopped now";
@@ -166,6 +205,8 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String restart(String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
+        if(roles.get(currentRole)[5] == 0) return "No privileges!";
+
         if (serverStatus){
             //restart
 
@@ -180,6 +221,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String status(String printer, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
+        if(roles.get(currentRole)[6] == 0) return "No privileges!";
         for(int i = 0; i < printerList.size(); i++){
             if ((printerList.get(i).getPrinter()).equals(printer)) {
                 if (printerList.get(i).getStatus()){
@@ -197,6 +239,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String readConfig(String parameter, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
+        if(roles.get(currentRole)[7] == 0) return "No privileges!";
         String value = parameterList.get(parameter);
         if (value.equals(" ") || value.equals(null)){
             return "Did not found the parameter in the list.";
@@ -210,6 +253,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String setConfig(String parameter, String value, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
+        if(roles.get(currentRole)[8] == 0) return "No privileges!";
         for (String i : parameterList.keySet()) {
             if (i.equals(parameter)){
                 parameterList.put(i, value);
@@ -242,13 +286,14 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
 
                 if(dbPassword.equals(newUser.password)){
-                    role = dbRole;
+                    currentRole = dbRole;
                     userLoggedIn = true;
                     activeToken = generateNewToken();
                     return activeToken;
                 }
             }
         }catch(Exception e){
+            System.out.println(e.getMessage());
             return e.getMessage();
         }
         return "Not logged in";
@@ -285,6 +330,24 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
         }
         return s;
     }
+
+    @Override
+    public String ChangeRole(String user, int newRole, String token) throws RemoteException {
+        if(!token.equals(activeToken)) return "Session token is not valid";
+        if(!userLoggedIn) return "User not logged in!";
+        if(currentRole != 1) return "No privileges!";
+
+        try{
+            Statement statement = dbConnector.createStatement();
+
+            boolean execute = statement.execute("UPDATE User SET Role="+newRole+" WHERE Login = '"+user+"'");
+            if(!execute) return "Role changed";
+        }catch(Exception e){
+            return e.getMessage();
+        }
+        return "Execute failed";
+    }
+
     private static String byteToHex(final byte[] hash)
     {
         Formatter formatter = new Formatter();

@@ -119,6 +119,13 @@ public class Client {
         } else if(selectedService == 0){
             message = service.logOut(activeToken);
             System.out.println("-------------------------------------------------------------------------------------------------------------");
+        } else if(selectedService == 10){
+            System.out.println("Which username do you want to change?");
+            String parameter = consoleReader.readLine();
+            System.out.println("What is new role of this user?");
+            String value = consoleReader.readLine();
+
+            message = service.ChangeRole(parameter, Integer.parseInt(value), activeToken);
         } else
             message = "wrong number...this specified number doesn't belong to a service.";
         return message;
@@ -162,6 +169,7 @@ public class Client {
         System.out.println("Press 8 if you want to get the value of a parameter");
         System.out.println("Press 9 if you want to set the value of a parameter");
         System.out.println("Press 0 if you want to log out.");
+        System.out.println("Press 10 if you want to change role.");
 
         try{
             return Integer.parseInt(consoleReader.readLine());

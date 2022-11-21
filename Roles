@@ -1,0 +1,5 @@
+        print   queue   topQueue    start   stop    restart     status  readConfig  setConfig
+Admin   1       1       1           1       1       1           1       1           1
+Technican 0     0       0           1       1       1           1       1           1
+PowerUser 1     1       1           0       0       1           0       0           0
+User    1       1       0           0       0       0           0       0           0

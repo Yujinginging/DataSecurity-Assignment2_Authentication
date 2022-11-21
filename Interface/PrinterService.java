@@ -33,4 +33,6 @@ public interface PrinterService extends Remote {
 
     public String toStringQueue(String printer, String token) throws RemoteException;
 
+    public String ChangeRole(String user, int newRole, String token) throws RemoteException;
+
 }
