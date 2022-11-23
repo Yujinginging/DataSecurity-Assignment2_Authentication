@@ -270,6 +270,10 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     //    userLoggedIn = false;
         if(!token.equals(activeToken)) return "Session token is not valid";
         activeToken = "";
+        for(int i=0;i<priv.length;i++)
+        {
+            priv[i] = 0;
+        }
         return "Log out";
     }
 
