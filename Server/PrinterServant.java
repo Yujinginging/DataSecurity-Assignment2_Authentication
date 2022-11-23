@@ -15,8 +15,9 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     HashMap<String,String> parameterList;
     Connection dbConnector;
     String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "\\database.db";
-    Map<Integer, Integer[]> roles = new HashMap<Integer, Integer[]>();;
-    int currentRole;
+    Map<String, Integer[]> roles = new HashMap<String, Integer[]>();;
+    String currentRole;
+    Integer[] priv = {0,0,0,0,0,0,0,0,0};
     boolean userLoggedIn = false;
     private static final SecureRandom secureRandom = new SecureRandom(); //threadsafe
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder(); //threadsafe
@@ -44,7 +45,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
 
             while(getRoles.next()){
-                int id = resultSet.getInt("Id");
+                String name = resultSet.getString("Name");
                 int print = resultSet.getInt("print");
                 int queue = resultSet.getInt("queue");
                 int topQueue = resultSet.getInt("topQueue");
@@ -68,8 +69,8 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
                 priv.toArray();
                 Integer[] arr = new Integer[priv.size()];
                 arr = priv.toArray(arr);
-                roles.put(id, arr);
-                System.out.println(id + ", " + priv.toString());
+                roles.put(name, arr);
+                System.out.println(name + ", " + priv.toString());
             }
 
 
@@ -101,7 +102,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String print(String filename, String printer, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        if(roles.get(currentRole)[0] == 0) return "Specific User doesn't have the rights to access this task!";
+        if(priv[0] == 0) return "Specific User doesn't have the rights to access this task!";
         String s = null;
         if (!checkIfPrinterIsOn()){
             return printerOff;
@@ -127,7 +128,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public ArrayList<File> queue(String printer, String token) throws RemoteException {
         if(!token.equals(activeToken)) return null;
         if(!userLoggedIn) return null;
-        if(roles.get(currentRole)[1] == 0) return null;
+        if(priv[1] == 0) return null;
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)){
                 return printerList.get(i).getQueue();
@@ -140,7 +141,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String topQueue(String printer, int job, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        if(roles.get(currentRole)[2] == 0) return "Specific User doesn't have the rights to access this task!";
+        if(priv[2] == 0) return "Specific User doesn't have the rights to access this task!";
         String filename=null;
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)) {
@@ -173,7 +174,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String start(String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        if(roles.get(currentRole)[3] == 0) return "Specific User doesn't have the rights to access this task!";
+        if(priv[3] == 0) return "Specific User doesn't have the rights to access this task!";
         if (!serverStatus){
             serverStatus = true;
             // when the print server starts working it automatically starts all the printers as well!
@@ -190,7 +191,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String stop(String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        if(roles.get(currentRole)[4] == 0) return "Specific User doesn't have the rights to access this task!";
+        if(priv[4] == 0) return "Specific User doesn't have the rights to access this task!";
         if (serverStatus){
             serverStatus=false;
             return "The server is stopped now";
@@ -205,7 +206,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String restart(String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        if(roles.get(currentRole)[5] == 0) return "Specific User doesn't have the rights to access this task!";
+        if(priv[5] == 0) return "Specific User doesn't have the rights to access this task!";
 
         if (serverStatus){
             //restart
@@ -221,7 +222,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String status(String printer, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        if(roles.get(currentRole)[6] == 0) return "Specific User doesn't have the rights to access this task!";
+        if(priv[6] == 0) return "Specific User doesn't have the rights to access this task!";
         for(int i = 0; i < printerList.size(); i++){
             if ((printerList.get(i).getPrinter()).equals(printer)) {
                 if (printerList.get(i).getStatus()){
@@ -239,7 +240,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String readConfig(String parameter, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        if(roles.get(currentRole)[7] == 0) return "Specific User doesn't have the rights to access this task!";
+        if(priv[7] == 0) return "Specific User doesn't have the rights to access this task!";
         String value = parameterList.get(parameter);
         if (value.equals(" ") || value.equals(null)){
             return "Did not found the parameter in the list.";
@@ -253,7 +254,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String setConfig(String parameter, String value, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        if(roles.get(currentRole)[8] == 0) return "Specific User doesn't have the rights to access this task!";
+        if(priv[8] == 0) return "Specific User doesn't have the rights to access this task!";
         for (String i : parameterList.keySet()) {
             if (i.equals(parameter)){
                 parameterList.put(i, value);
@@ -282,13 +283,22 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
             while(resultSet.next()){
                 String dbPassword = resultSet.getString("Password");
-                int dbRole = resultSet.getInt("Role");
+                String dbRole = resultSet.getString("Roles");
 
 
                 if(dbPassword.equals(newUser.password)){
                     currentRole = dbRole;
                     userLoggedIn = true;
                     activeToken = generateNewToken();
+                    String[] arrOfStr = currentRole.split(";", 0);
+
+                    for (String a : arrOfStr)
+                    {
+                        for(int i=0;i<priv.length;i++)
+                        {
+                            priv[i] = priv[i] + roles.get(a)[i];
+                        }
+                    }
                     return activeToken;
                 }
             }
@@ -332,15 +342,21 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public String ChangeRole(String user, int newRole, String token) throws RemoteException {
+    public String ChangeRole(String user, String newRole, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        if(currentRole != 1) return "Specific User doesn't have the rights to access this task!";
+        if(!currentRole.contains("Admin")) return "Specific User doesn't have the rights to access this task!";
 
         try{
             Statement statement = dbConnector.createStatement();
+            String[] arrOfStr = newRole.split(";", 0);
 
-            boolean execute = statement.execute("UPDATE User SET Role="+newRole+" WHERE Login = '"+user+"'");
+            for (String a : arrOfStr)
+            {
+                if(!roles.containsKey(a)) return "One of roles doesn't exists " + a;
+            }
+
+            boolean execute = statement.execute("UPDATE User SET Roles='"+newRole+"' WHERE Login = '"+user+"'");
             if(!execute) return "Role changed";
         }catch(Exception e){
             return e.getMessage();

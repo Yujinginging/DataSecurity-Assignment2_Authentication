@@ -122,10 +122,10 @@ public class Client {
         } else if(selectedService == 10){
             System.out.println("Which username do you want to change?");
             String parameter = consoleReader.readLine();
-            System.out.println("What is new role of this user?");
+            System.out.println("What is new roles of this user? (If multiple put with ; between)");
             String value = consoleReader.readLine();
 
-            message = service.ChangeRole(parameter, Integer.parseInt(value), activeToken);
+            message = service.ChangeRole(parameter, value, activeToken);
         } else
             message = "wrong number...this specified number doesn't belong to a service.";
         return message;
