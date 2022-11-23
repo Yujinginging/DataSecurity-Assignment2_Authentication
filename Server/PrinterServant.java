@@ -320,8 +320,8 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
             Statement statement = dbConnector.createStatement();
 
-            boolean execute = statement.execute("INSERT INTO User (Login, Password, Role)\n" +
-                                                    "VALUES ('" + newUser.login + "', '" + newUser.password + "'," + newUser.role + ");");
+            boolean execute = statement.execute("INSERT INTO User (Login, Password, Roles)\n" +
+                                                    "VALUES ('" + newUser.login + "', '" + newUser.password + "','Zero-User');");
             if(!execute) return "Registered";
         }catch(Exception e){
             return e.getMessage();
