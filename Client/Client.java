@@ -2,15 +2,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Dictionary;
-import java.util.concurrent.TimeUnit;
 
 public class Client {
     private static final int PORT = 5099;
+    private static String clientName;
 
     public static void main(String[] args) throws IOException, NotBoundException, InterruptedException {
         Registry registry = LocateRegistry.getRegistry(
@@ -25,72 +23,54 @@ public class Client {
         boolean logInFlag  = false;
         String activeToken = "";
 
-        System.out.println("Welcome to the print server. If its you first time connecting, please register. Otherwise proceed with login.");
-        System.out.println("Press [R] for registering.");
-        System.out.println("Press [L] for login.");
-        System.out.println("-------------------------------------------------------------------------------------------------------------");
-        String line = consoleReader.readLine();
-//      System.out.println(line);
-
+        //registerClient(consoleReader, service);
+        System.out.println("Welcome to the print server." + "\n" + "Proceed with login.");
         while (!logInFlag) {
-
-            if (line.equals("R")) {
-                System.out.println("--------------------------");
-                System.out.println("Client Register:");
-                String registerAction;
-                registerAction = registerClient(consoleReader, service);
-                System.out.println(registerAction);
-
-                line = "L";
-            }
-            if (line.equals("L") ) {
-                System.out.println("--------------------------");
-                System.out.println("Client Login: ");
-                String loginAction;
-                loginAction = loginClient(consoleReader, service);
+            System.out.println("--------------------------");
+            System.out.println("Client Login: ");
+            String loginAction;
+            loginAction = loginClient(consoleReader, service);
+            if (!loginAction.equals("Not logged in")) {
                 activeToken = loginAction;
                 System.out.println("Client logged in!");
                 logInFlag = true;
             }
-            else {
-                System.out.println("Press [R] or [L] in order to continue!");
-                line = consoleReader.readLine();
-            }
         }
-
+        int selectedService = selectService(consoleReader);
         // Loop of printer actions from the client, until the client asks to Log out !
+
         while (!logOutFlag){
-            String printerAction = printerCall(consoleReader, selectService(consoleReader), service, activeToken);
+            String printerAction = printerCall(consoleReader, selectedService, service, activeToken);
             System.out.println(printerAction);
             if (printerAction.equals("Log out")){
                 System.out.println("Client logged out from the server.");
                 logOutFlag = true;
             }
-            TimeUnit.SECONDS.sleep(3);
+            selectedService = Integer.parseInt(consoleReader.readLine());
+
         }
     }
 
     private static String printerCall(BufferedReader consoleReader, int selectedService, PrinterService service, String activeToken) throws IOException {
         String message = " ";
-      //  System.out.println(activeToken);
         if (selectedService == 1) {
-            message = service.start(activeToken);
+            message = service.start(activeToken, clientName);
         } else if (selectedService == 2) {
-            message = service.stop(activeToken);
+            message = service.stop(activeToken, clientName);
         } else if (selectedService == 3) {
-            message = service.restart(activeToken);
+            message = service.restart(activeToken, clientName);
         } else if (selectedService == 4) {
             System.out.println("Which file you want to be printed: ");
             String file = consoleReader.readLine();
             System.out.println("Which printer you want to use: ");
             String printer = consoleReader.readLine();
 
-            message = service.print(file, printer, activeToken);
+            message = service.print(file, printer, activeToken, clientName);
         } else if (selectedService == 5) {
             System.out.println("Which printer you want to select the queue from: ");
             String printer = consoleReader.readLine();
 
-            message = service.toStringQueue(printer, activeToken);
+            message = service.toStringQueue(printer, activeToken, clientName);
         } else if (selectedService == 6){
             System.out.println("Which printer you want to select the status from: ");
             String printer = consoleReader.readLine();
@@ -98,24 +78,24 @@ public class Client {
             System.out.println("Which job number you want to be printed: ");
             int jobNumber = Integer.parseInt(consoleReader.readLine());
 
-            message = service.topQueue(printer,jobNumber, activeToken);
+            message = service.topQueue(printer,jobNumber, activeToken, clientName);
         }else if (selectedService == 7) {
             System.out.println("Which printer you want to select the status from: ");
             String printer = consoleReader.readLine();
 
-            message = service.status(printer, activeToken);
+            message = service.status(printer, activeToken, clientName);
         } else if (selectedService == 8) {
             System.out.println("Which parameter you want to get the value from: ");
             String parameter = consoleReader.readLine();
 
-            message = service.readConfig(parameter, activeToken);
+            message = service.readConfig(parameter, activeToken, clientName);
         } else if (selectedService == 9) {
             System.out.println("Which parameter you want to set its value : ");
             String parameter = consoleReader.readLine();
             System.out.println("Which is the new value of the parameter: ");
             String value = consoleReader.readLine();
 
-            message = service.setConfig(parameter, value, activeToken);
+            message = service.setConfig(parameter, value, activeToken, clientName);
         } else if(selectedService == 0){
             message = service.logOut(activeToken);
             System.out.println("-------------------------------------------------------------------------------------------------------------");
@@ -130,6 +110,7 @@ public class Client {
         System.out.println("Username: ");
         String login = consoleReader.readLine();
         System.out.println("Password: ");
+        clientName = String.valueOf(login);
         String password = consoleReader.readLine();
         token = service.logIn(login, password);
         System.out.println(token);
@@ -142,6 +123,7 @@ public class Client {
 
         System.out.println("Username: ");
         String login = consoleReader.readLine();
+        clientName = String.valueOf(login);
         System.out.println("Password: ");
         String password = consoleReader.readLine();
         message = service.Register(login, password);

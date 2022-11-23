@@ -1,12 +1,10 @@
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.sql.*;
 import java.util.*;
+// Importing input output classes
+
 
 public class PrinterServant extends UnicastRemoteObject implements PrinterService{
     boolean serverStatus = false; //false means server is off, true means on
@@ -22,7 +20,9 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     String activeToken = "";
     private static final int PORT = 5099;
 
-    //
+
+    private static HashMap<String, String[]> policy;
+
     public PrinterServant(boolean serverStatus) throws Exception {
         super(PORT, new RMISSLClientSocketFactory(),
                 new RMISSLServerSocketFactory());
@@ -45,8 +45,6 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
         //creating a parameter array list
         parameterList = new HashMap<String,String>();
         int randomNum;
-        int upperBound = 10;
-        //randomNum = rand.nextInt(upperBound);
         randomNum = 3;
         for (int i = 0; i < randomNum; i++){
             String parameterName = "Parameter" + i;
@@ -57,6 +55,9 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
             System.out.println(i);
         }
 
+        // ACL policy implementation
+        PolicyReader policyReader = null;
+        policy = policyReader.createACL_Policy();
     }
     @Override
     public String echo(String input) throws RemoteException {
@@ -64,9 +65,15 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public String print(String filename, String printer, String token) throws RemoteException {
+    public String print(String filename, String printer, String token, String clientName) throws RemoteException {
+        // checks :
         if(!token.equals(activeToken)) return "Session token is not valid";
+
         if(!userLoggedIn) return "User not logged in!";
+
+        if (!checkUsersACL(clientName, "print")) return "Specific User doesn't have the rights to access this task!";
+        // end of checks !
+
         String s = null;
         if (!checkIfPrinterIsOn()){
             return printerOff;
@@ -88,10 +95,15 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
         return s;
     }
 
-    @Override
-    public ArrayList<File> queue(String printer, String token) throws RemoteException {
+    public ArrayList<File> queue(String printer, String token, String clientName) throws RemoteException {
+
+        // checks :
         if(!token.equals(activeToken)) return null;
+
         if(!userLoggedIn) return null;
+
+        if (!checkUsersACL(clientName, "queue")) return null;
+        // end of checks !
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)){
                 return printerList.get(i).getQueue();
@@ -101,9 +113,15 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public String topQueue(String printer, int job, String token) throws RemoteException {
+    public String topQueue(String printer, int job, String token, String clientName) throws RemoteException {
+        // checks :
         if(!token.equals(activeToken)) return "Session token is not valid";
+
         if(!userLoggedIn) return "User not logged in!";
+
+        if (!checkUsersACL(clientName, "topQueue")) return "Specific User doesn't have the rights to access this task!";
+        // end of checks !
+
         String filename=null;
         for (int i=0;i<printerList.size();i++){
             if ((printerList.get(i).getPrinter()).equals(printer)) {
@@ -127,15 +145,21 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
                 printerList.get(i).setQueue(newQueue);
                 break;
             }
-            }
+        }
 
         return "Job number " + job +" named: " + filename + " moves to the top in the queue"; // job number
     }
 
     @Override
-    public String start(String token) throws RemoteException {
+    public String start(String token, String clientName) throws RemoteException {
+        // checks :
         if(!token.equals(activeToken)) return "Session token is not valid";
+
         if(!userLoggedIn) return "User not logged in!";
+
+        if (!checkUsersACL(clientName, "start")) return "Specific User doesn't have the rights to access this task!";
+        // end of checks !
+
         if (!serverStatus){
             serverStatus = true;
             // when the print server starts working it automatically starts all the printers as well!
@@ -149,9 +173,15 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public String stop(String token) throws RemoteException {
+    public String stop(String token, String clientName) throws RemoteException {
+
+        // checks :
         if(!token.equals(activeToken)) return "Session token is not valid";
+
         if(!userLoggedIn) return "User not logged in!";
+
+        if (!checkUsersACL(clientName, "stop")) return "Specific User doesn't have the rights to access this task!";
+        // end of checks !
         if (serverStatus){
             serverStatus=false;
             return "The server is stopped now";
@@ -163,9 +193,15 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public String restart(String token) throws RemoteException {
+    public String restart(String token, String clientName) throws RemoteException {
+        // checks :
         if(!token.equals(activeToken)) return "Session token is not valid";
+
         if(!userLoggedIn) return "User not logged in!";
+
+        if (!checkUsersACL(clientName, "restart")) return "Specific User doesn't have the rights to access this task!";
+        // end of checks !
+
         if (serverStatus){
             //restart
 
@@ -177,9 +213,15 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public String status(String printer, String token) throws RemoteException {
+    public String status(String printer, String token, String clientName) throws RemoteException {
+        // checks :
         if(!token.equals(activeToken)) return "Session token is not valid";
+
         if(!userLoggedIn) return "User not logged in!";
+
+        if (!checkUsersACL(clientName, "status")) return "Specific User doesn't have the rights to access this task!";
+        // end of checks !
+
         for(int i = 0; i < printerList.size(); i++){
             if ((printerList.get(i).getPrinter()).equals(printer)) {
                 if (printerList.get(i).getStatus()){
@@ -194,9 +236,15 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public String readConfig(String parameter, String token) throws RemoteException {
+    public String readConfig(String parameter, String token, String clientName) throws RemoteException {
+        // checks :
         if(!token.equals(activeToken)) return "Session token is not valid";
+
         if(!userLoggedIn) return "User not logged in!";
+
+        if (!checkUsersACL(clientName, "readConfig")) return "Specific User doesn't have the rights to access this task!";
+        // end of checks !
+
         String value = parameterList.get(parameter);
         if (value.equals(" ") || value.equals(null)){
             return "Did not found the parameter in the list.";
@@ -207,9 +255,15 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public String setConfig(String parameter, String value, String token) throws RemoteException {
+    public String setConfig(String parameter, String value, String token, String clientName) throws RemoteException {
+        // checks :
         if(!token.equals(activeToken)) return "Session token is not valid";
+
         if(!userLoggedIn) return "User not logged in!";
+
+        if (!checkUsersACL(clientName, "setConfig")) return "Specific User doesn't have the rights to access this task!";
+        // end of checks !
+
         for (String i : parameterList.keySet()) {
             if (i.equals(parameter)){
                 parameterList.put(i, value);
@@ -221,13 +275,18 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
 
     @Override
     public String logOut(String token) throws RemoteException {
-    //    if(!userLoggedIn) return "User not logged in!";
-    //    userLoggedIn = false;
         if(!token.equals(activeToken)) return "Session token is not valid";
         activeToken = "";
         return "Log out";
     }
 
+    public void queryDone() throws SQLException {
+        Statement statement = dbConnector.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM User");
+        while(resultSet.next()){
+            System.out.println(resultSet.getString("Login") + " " + resultSet.getString("Password"));
+        }
+    }
     @Override
     public String logIn(String login, String password) throws RemoteException {
         try{
@@ -239,7 +298,6 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
             while(resultSet.next()){
                 String dbPassword = resultSet.getString("Password");
                 int dbRole = resultSet.getInt("Role");
-
 
                 if(dbPassword.equals(newUser.password)){
                     role = dbRole;
@@ -275,31 +333,37 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     }
 
     @Override
-    public String toStringQueue(String printer, String token) throws RemoteException {
+    public String toStringQueue(String printer, String token, String clientName) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
-        ArrayList<File> queue = queue(printer, token);
+        ArrayList<File> queue = queue(printer, token,clientName);
         String s = "";
         for (int i=0;i<queue.size();i++){
             s += queue.get(i).getJobNumber() + "   " + queue.get(i).getFileName() + "\n";
         }
         return s;
     }
-    private static String byteToHex(final byte[] hash)
-    {
-        Formatter formatter = new Formatter();
-        for (byte b : hash)
-        {
-            formatter.format("%02x", b);
-        }
-        String result = formatter.toString();
-        formatter.close();
-        return result;
-    }
+    private static boolean checkUsersACL(String clientUsername, String functionName){
+        String[] functionEntry = new String[8];
+        functionEntry = policy.get(functionName);
+        System.out.println(functionName);
+        System.out.println(Arrays.toString(functionEntry));
 
+        boolean userAccess = false;
+
+        for (int i = 0; i < 8; i++){
+            if (clientUsername.equals(functionEntry[i])){
+                userAccess = true;
+            }
+        }
+
+        System.out.println(userAccess + " " + clientUsername + " " + functionName);
+        return userAccess;
+    }
     private static String generateNewToken() {
         byte[] randomBytes = new byte[16];
         secureRandom.nextBytes(randomBytes);
         return base64Encoder.encodeToString(randomBytes);
     }
 }
+

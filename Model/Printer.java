@@ -1,7 +1,4 @@
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.List;
 
 public class Printer {
     String printer;
