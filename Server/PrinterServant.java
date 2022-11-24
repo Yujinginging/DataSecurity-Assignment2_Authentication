@@ -254,7 +254,9 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
     public String setConfig(String parameter, String value, String token) throws RemoteException {
         if(!token.equals(activeToken)) return "Session token is not valid";
         if(!userLoggedIn) return "User not logged in!";
+
         if(priv[8] == 0) return "Specific User doesn't have the rights to access this task!";
+
         for (String i : parameterList.keySet()) {
             if (i.equals(parameter)){
                 parameterList.put(i, value);
@@ -361,6 +363,7 @@ public class PrinterServant extends UnicastRemoteObject implements PrinterServic
             }
 
             boolean execute = statement.execute("UPDATE User SET Roles='"+newRole+"' WHERE Login = '"+user+"'");
+
             if(!execute) return "Role changed";
         }catch(Exception e){
             return e.getMessage();

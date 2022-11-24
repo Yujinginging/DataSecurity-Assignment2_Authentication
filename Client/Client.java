@@ -49,6 +49,11 @@ public class Client {
                 String loginAction;
                 loginAction = loginClient(consoleReader, service);
                 activeToken = loginAction;
+                if(loginAction.equals("Not logged in")) {
+                    System.out.println("Wrong credentials");
+                    TimeUnit.SECONDS.sleep(3);
+                    return;
+                }
                 System.out.println("Client logged in!");
                 logInFlag = true;
             }
